@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Загрузка проекта...</title>
     <link rel="icon" href="https://github.com/Ferra13671.png" type="image/png">
-    <!-- Подключаем библиотеку для чтения Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
@@ -15,6 +14,7 @@
             --card-bg: #252525;
             --border-color: #333333;
             --accent: #4a90e2;
+            --sidebar-width: 300px;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -22,9 +22,12 @@
             background-color: var(--bg-color);
             color: var(--text-main);
             line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
-        /* Шапка с обложкой */
+        /* Шапка */
         .project-header {
             width: 100%;
             height: 250px;
@@ -36,67 +39,101 @@
             display: flex;
             align-items: flex-end;
             padding: 30px 40px;
+            flex-shrink: 0;
         }
         .project-header::before {
             content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
             background: linear-gradient(to top, rgba(26,26,26,1) 0%, rgba(26,26,26,0.4) 100%);
             z-index: 1;
         }
         .project-header h1 {
-            position: relative;
-            z-index: 2;
-            font-size: 2.5rem;
-            font-weight: 700;
+            position: relative; z-index: 2; font-size: 2.5rem; font-weight: 700;
         }
 
-                /* Навигация (Табы) */
+        /* Навигация */
         .project-nav {
-            display: flex;
-            gap: 10px;
-            padding: 20px 40px;
-            border-bottom: 1px solid var(--border-color);
-            background-color: var(--bg-color);
+            display: flex; gap: 10px; padding: 20px 40px;
+            border-bottom: 1px solid var(--border-color); background-color: var(--bg-color);
+            flex-shrink: 0;
         }
         .nav-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 1rem;
-            font-weight: 600; /* Делаем шрифт изначально полужирным, чтобы не было прыжков */
-            cursor: pointer;
-            padding: 8px 16px;
-            border-radius: 6px;
-            transition: color 0.2s, background-color 0.2s;
-            text-decoration: none; /* Для ссылки на GitHub */
+            background: none; border: none; color: var(--text-muted);
+            font-size: 1rem; font-weight: 600; cursor: pointer;
+            padding: 8px 16px; border-radius: 6px;
+            transition: color 0.2s, background-color 0.2s; text-decoration: none;
         }
-        .nav-btn:hover {
-            color: var(--text-main);
-            background-color: var(--card-bg);
-        }
-        .nav-btn.active {
-            color: var(--accent);
-            background-color: rgba(74, 144, 226, 0.1);
-            /* font-weight: 600; <-- Убрали отсюда, так как перенесли в базовый класс */
-        }
+        .nav-btn:hover { color: var(--text-main); background-color: var(--card-bg); }
+        .nav-btn.active { color: var(--accent); background-color: rgba(74, 144, 226, 0.1); }
 
-        /* Контентная часть */
-        .project-content {
-            max-width: 900px;
+        /* Контейнер для контента */
+        .content-wrapper {
+            display: flex;
+            flex: 1;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 40px;
+            width: 100%;
         }
 
-        /* Стили для Markdown (чтобы текст выглядел красиво) */
+        /* Боковая панель документации */
+        .docs-sidebar {
+            width: var(--sidebar-width);
+            padding: 30px 20px;
+            border-right: 1px solid var(--border-color);
+            display: none; /* Скрыта по умолчанию */
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+        .docs-sidebar.visible { display: block; }
+
+        .docs-group-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin: 20px 0 10px 10px;
+            letter-spacing: 0.5px;
+        }
+        .docs-group-title:first-child { margin-top: 0; }
+
+        .docs-link {
+            display: block;
+            padding: 6px 10px;
+            color: var(--text-main);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+            cursor: pointer;
+        }
+        .docs-link:hover { background-color: var(--card-bg); }
+        .docs-link.active { background-color: rgba(74, 144, 226, 0.15); color: var(--accent); font-weight: 600;}
+
+        /* Основной контент */
+        .project-content {
+            flex: 1;
+            padding: 40px 60px;
+            max-width: 900px;
+            overflow-y: auto;
+        }
+
+        /* Стили Markdown */
         .markdown-body h1, .markdown-body h2, .markdown-body h3 { margin-top: 1.5em; margin-bottom: 0.5em; color: #fff; }
+        .markdown-body h1 { margin-top: 0; }
         .markdown-body p { margin-bottom: 1em; }
-        .markdown-body a { color: var(--accent); text-decoration: none; }
+        .markdown-body a { color: var(--accent); text-decoration: none; cursor: pointer; }
         .markdown-body a:hover { text-decoration: underline; }
         .markdown-body code { background: #333; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.9em; }
-        .markdown-body pre { background: #111; padding: 15px; border-radius: 8px; overflow-x: auto; margin-bottom: 1em; }
+        .markdown-body pre { background: #111; padding: 15px; border-radius: 8px; overflow-x: auto; margin-bottom: 1em; border: 1px solid #333; }
         .markdown-body pre code { background: none; padding: 0; }
         .markdown-body ul, .markdown-body ol { margin-bottom: 1em; padding-left: 20px; }
+        .markdown-body img { max-width: 100%; border-radius: 8px; margin: 10px 0; }
+
+        @media (max-width: 768px) {
+            .content-wrapper { flex-direction: column; }
+            .docs-sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); max-height: 300px;}
+            .project-content { padding: 20px; }
+        }
     </style>
 </head>
 <body>
@@ -106,18 +143,24 @@
 </header>
 
 <nav class="project-nav">
-    <button class="nav-btn active" onclick="loadTab('about', this)">О проекте</button>
-    <button class="nav-btn" onclick="loadTab('docs', this)">Документация</button>
-    <button class="nav-btn" onclick="loadTab('changelog', this)">Изменения</button>
+    <button class="nav-btn active" id="tab-about" onclick="loadTab('about')">О проекте</button>
+    <button class="nav-btn" id="tab-docs" onclick="loadTab('docs')">Документация</button>
+    <button class="nav-btn" id="tab-changelog" onclick="loadTab('changelog')">Изменения</button>
     <a href="#" target="_blank" class="nav-btn" id="github-link">Github репозиторий</a>
 </nav>
 
-<main class="project-content markdown-body" id="content-area">
-    <!-- Сюда будет загружаться контент -->
-    <p>Загрузка...</p>
-</main>
+<div class="content-wrapper">
+    <!-- Сайдбар (появляется только для документации) -->
+    <aside class="docs-sidebar" id="docs-sidebar">
+        <div id="docs-menu-container"></div>
+    </aside>
 
-<!-- Подключаем логику страницы проекта -->
+    <!-- Зона контента -->
+    <main class="project-content markdown-body" id="content-area">
+        <p>Загрузка...</p>
+    </main>
+</div>
+
 <script src="project.js"></script>
 </body>
 </html>
