@@ -1,0 +1,18 @@
+[
+  {
+    "id": "getting-started",
+    "title": "Начало работы",
+    "pages": [
+      { "id": "intro", "title": "Введение" },
+      { "id": "installation", "title": "Установка" },
+      { "id": "test", "title": "Тест"}
+    ]
+  },
+  {
+    "id": "config",
+    "title": "Конфигурация",
+    "pages": [
+      { "id": "config", "title": "Настройки" }
+    ]
+  }
+]

@@ -24,13 +24,12 @@ document.addEventListener('DOMContentLoaded', () => {
             container.innerHTML = '';
 
             projects.forEach(project => {
+                // Внутри forEach(project => { ... })
                 const card = document.createElement('a');
-
-                // Теперь ссылка ведет на страницу project.html с параметром id
-                card.href = `project.html?id=${project.id}`;
+                // Добавляем язык в ссылку
+                card.href = `project.html?id=${project.id}&lang=${currentLang}`;
                 card.className = 'project-card';
 
-                // Автоматически формируем путь к обложке
                 const coverImage = `projects/${project.id}/images/cover.png`;
 
                 card.innerHTML = `
@@ -39,12 +38,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         <h3 class="card-title">${project.title}</h3>
                         <div class="card-hover-content">
                             <p class="card-description">${project.description}</p>
-                            <div class="card-hint">Click to view project →</div>
+                            <div class="card-hint" data-i18n="click_to_view">Click to view project →</div>
                         </div>
                     </div>
                 `;
-
                 container.appendChild(card);
+                // После добавления применяем переводы к новым элементам
+                applyTranslationsToDOM();
             });
         })
         .catch(error => {

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+    <script src="i18n.js"></script>
     <link rel="icon" href="https://github.com/Ferra13671.png" type="image/png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -185,22 +186,24 @@
 
 <header>
     <div class="logo-container">
-        <img src="https://github.com/Ferra13671.png" alt="Ferra13671">
-        <span>Ferra13671 Projects</span>
+        <img src="https://github.com/Ferra13671.png" alt="Logo">
+        <span data-i18n="site_title">Ferra13671 Projects</span>
     </div>
+    <!-- Селектор языка -->
+    <select id="lang-switch" onchange="changeLanguage(this.value)" style="background: #252525; color: #fff; border: 1px solid #333; padding: 5px; border-radius: 4px; cursor: pointer;">
+        <option value="en">English</option>
+        <option value="ru">Русский</option>
+    </select>
 </header>
 
 <main>
     <section class="hero-section">
-        <h1>About this site</h1>
-        <p>This site was created as a collection of documentation and changelogs for all my open source projects.</p>
+        <h1 data-i18n="about_site">About this site</h1>
+        <p data-i18n="about_desc">This site was created...</p>
     </section>
 
-    <h2 class="projects-header">Ferra13671 Projects</h2>
-
-    <div class="projects-grid">
-        <!-- Карточки будут добавлены скриптом -->
-    </div>
+    <h2 class="projects-header" data-i18n="projects_header">Ferra13671 Projects</h2>
+    <div class="projects-grid"></div>
 </main>
 
 <script src="script.js"></script>
