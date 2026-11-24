@@ -15,8 +15,10 @@ function t(key) {
 // Асинхронная загрузка словаря перед запуском основного скрипта
 async function loadTranslations() {
     try {
-        const response = await fetch(`locales/${currentLang}.json`);
-        translations = await response.json();
+        // Меняем расширение на .json5
+        const response = await fetch(`locales/${currentLang}.json5`);
+        const text = await response.text(); // Читаем как текст
+        translations = JSON5.parse(text);   // Парсим через JSON5
         applyTranslationsToDOM();
     } catch (e) {
         console.error("Ошибка загрузки переводов:", e);

@@ -1,0 +1,13 @@
+{
+  site_title: 'Проекты Ferra13671',
+  about_site: 'Об этом сайте',
+  about_desc: 'Этот сайт был создан как сборник документации и списков изменений для всех моих open-source проектов.',
+  projects_header: 'Проекты Ferra13671',
+  click_to_view: 'Нажмите, чтобы открыть →',
+  tab_about: 'О проекте',
+  tab_docs: 'Документация',
+  tab_changelog: 'Изменения',
+  tab_github: 'Github репозиторий',
+  loading: 'Загрузка...',
+  error_not_found: 'Не найдено'
+}

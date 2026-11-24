@@ -1,16 +1,20 @@
 document.addEventListener('DOMContentLoaded', () => {
-    fetch('projects/info.json')
+    // Меняем путь на .json5
+    fetch('projects/info.json5')
         .then(response => {
-            if (!response.ok) throw new Error('Не удалось загрузить info.json');
-            return response.json();
+            if (!response.ok) throw new Error('Не удалось загрузить info.json5');
+            return response.text(); // Получаем текст
         })
+        .then(text => JSON5.parse(text)) // Парсим JSON5
         .then(projectIds => {
             const fetchPromises = projectIds.map(id => {
-                return fetch(`projects/${id}/card.json`)
+                // Меняем путь на .json5
+                return fetch(`projects/${id}/card.json5`)
                     .then(res => {
-                        if (!res.ok) throw new Error(`Не удалось загрузить card.json для ${id}`);
-                        return res.json();
+                        if (!res.ok) throw new Error(`Не удалось загрузить card.json5 для ${id}`);
+                        return res.text();
                     })
+                    .then(text => JSON5.parse(text))
                     .then(data => {
                         return { ...data, id: id };
                     });
@@ -24,9 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
             container.innerHTML = '';
 
             projects.forEach(project => {
-                // Внутри forEach(project => { ... })
                 const card = document.createElement('a');
-                // Добавляем язык в ссылку
                 card.href = `project.html?id=${project.id}&lang=${currentLang}`;
                 card.className = 'project-card';
 
@@ -43,8 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 `;
                 container.appendChild(card);
-                // После добавления применяем переводы к новым элементам
-                applyTranslationsToDOM();
+                if(typeof applyTranslationsToDOM === 'function') applyTranslationsToDOM();
             });
         })
         .catch(error => {

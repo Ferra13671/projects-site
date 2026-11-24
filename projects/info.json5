@@ -1,0 +1,5 @@
+[
+  'comet-renderer',
+  'gl-texture-utils',
+  'mega-events'
+]

@@ -16,16 +16,17 @@ let isDocStructureLoaded = false; // Флаг, чтобы не грузить in
 if (!projectId) {
     contentArea.innerHTML = '<p style="color: red;">Ошибка: Проект не найден в URL.</p>';
 } else {
-    fetch(`projects/${projectId}/card.json`)
-        .then(res => res.json())
-        .then(data => {
-            titleElement.textContent = data.title;
-            document.title = `${data.title} | Документация`;
-            headerBg.style.backgroundImage = `url('projects/${projectId}/images/header.png')`;
-            if (data.github) githubLink.href = data.github;
-            if(typeof applyTranslationsToDOM === 'function') applyTranslationsToDOM();
-        })
-        .catch(err => console.error(err));
+    fetch(`projects/${projectId}/card.json5`) // <-- .json5
+            .then(res => res.text())              // <-- text
+            .then(text => JSON5.parse(text))      // <-- parse
+            .then(data => {
+                titleElement.textContent = data.title;
+                document.title = `${data.title} | Документация`;
+                headerBg.style.backgroundImage = `url('projects/${projectId}/images/header.png')`;
+                if (data.github) githubLink.href = data.github;
+                if(typeof applyTranslationsToDOM === 'function') applyTranslationsToDOM();
+            })
+            .catch(err => console.error(err));
 }
 
 // === РОУТЕР (Обработка URL) ===
@@ -102,26 +103,29 @@ function initDocumentation(targetGroup = null, targetPage = null) {
         return;
     }
 
-    fetch(`projects/${projectId}/${currentLang}/documentation/info.json`)
-        .then(res => res.ok ? res.json() : Promise.reject())
-        .then(data => {
-            docsStructure = data;
-            isDocStructureLoaded = true;
-            renderSidebar();
+    fetch(`projects/${projectId}/${currentLang}/documentation/info.json5`) // <-- .json5
+            .then(res => {
+                if(!res.ok) throw new Error("Нет info.json5");
+                return res.text(); // <-- text
+            })
+            .then(text => JSON5.parse(text)) // <-- parse
+            .then(data => {
+                docsStructure = data;
+                isDocStructureLoaded = true;
+                renderSidebar();
 
-            if (targetGroup && targetPage) {
-                loadDocPage(targetGroup, targetPage, false);
-            } else if (docsStructure.length > 0 && docsStructure[0].pages.length > 0) {
-                // Если в URL был просто #docs, грузим первую страницу
-                loadDocPage(docsStructure[0].id, docsStructure[0].pages[0].id, true);
-            } else {
-                contentArea.innerHTML = '<p>Документация пуста.</p>';
-            }
-        })
-        .catch(err => {
-            contentArea.innerHTML = '<p>Документация для этого проекта пока не создана.</p>';
-            docsMenu.innerHTML = '';
-        });
+                if (targetGroup && targetPage) {
+                    loadDocPage(targetGroup, targetPage, false);
+                } else if (docsStructure.length > 0 && docsStructure[0].pages.length > 0) {
+                    loadDocPage(docsStructure[0].id, docsStructure[0].pages[0].id, true);
+                } else {
+                    contentArea.innerHTML = '<p>Документация пуста.</p>';
+                }
+            })
+            .catch(err => {
+                contentArea.innerHTML = '<p>Документация для этого проекта пока не создана.</p>';
+                docsMenu.innerHTML = '';
+            });
 }
 
 function renderSidebar() {

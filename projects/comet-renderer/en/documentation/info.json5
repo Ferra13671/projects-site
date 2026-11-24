@@ -1,0 +1,18 @@
+[
+  {
+    id: 'getting-started',
+    title: 'Getting Started',
+    pages: [
+      { id: 'intro', title: 'Intro' },
+      { id: 'installation', title: 'Installation' },
+      { id: 'test', title: 'Test'}
+    ]
+  },
+  {
+    id: 'config',
+    title: 'Config',
+    pages: [
+      { id: 'config', title: 'Config' }
+    ]
+  }
+]

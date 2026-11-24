@@ -1,0 +1,10 @@
+[
+  {
+    id: 'getting-started',
+    title: 'Начало работы',
+    pages: [
+      { id: 'installation', title: 'Установка' },
+      { id: 'initialization', title: 'Инициализация'}
+    ]
+  }
+]
