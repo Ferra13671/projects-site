@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 | Страница не найдена</title>
+    <link rel="icon" href="https://github.com/Ferra13671.png" type="image/png">
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --text-main: #e6e6e6;
+            --text-muted: #9e9e9e;
+            --accent: #4a90e2;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* Картинка */
+        .error-image {
+            max-width: 280px;
+            width: 100%;
+            height: auto;
+            margin-bottom: 30px;
+            /* Добавляем легкую анимацию парения */
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* Текст */
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 500px;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        /* Кнопка */
+        .btn-home {
+            display: inline-block;
+            background-color: var(--accent);
+            color: #fff;
+            text-decoration: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+
+        .btn-home:hover {
+            background-color: #357abd;
+            transform: translateY(-2px);
+        }
+
+        .btn-home:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+<!-- Путь к картинке. Убедись, что она лежит в папке images в корне сайта -->
+<img src="images/404.png" alt="404 Emoji" class="error-image">
+
+<h1>Упс! Страница не найдена</h1>
+<p>Похоже, вы свернули не туда. Возможно, страница была удалена, перемещена, или вы ошиблись в адресе.</p>
+
+<a href="index.html" class="btn-home">Вернуться на главную</a>
+
+</body>
+</html>
