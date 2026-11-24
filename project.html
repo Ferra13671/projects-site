@@ -12,6 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-groovy.min.js"></script>
 
     <style>
         :root {
@@ -157,5 +158,16 @@
 </div>
 
 <script src="project.js"></script>
+<script>
+    // Слушаем изменения хэша в URL (кнопки назад/вперед в браузере)
+    window.addEventListener('hashchange', handleRouting);
+
+    // Запускаем роутер при первой загрузке страницы
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof handleRouting === 'function') {
+            handleRouting();
+        }
+    });
+</script>
 </body>
 </html>

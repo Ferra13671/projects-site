@@ -11,6 +11,7 @@ const docsMenu = document.getElementById('docs-menu-container');
 let docsStructure = [];
 let currentGroup = '';
 let currentPage = '';
+let isDocStructureLoaded = false; // Флаг, чтобы не грузить info.json дважды
 
 if (!projectId) {
     contentArea.innerHTML = '<p style="color: red;">Ошибка: Проект не найден в URL.</p>';
@@ -25,11 +26,39 @@ if (!projectId) {
             if(typeof applyTranslationsToDOM === 'function') applyTranslationsToDOM();
         })
         .catch(err => console.error(err));
-
-    loadTab('about');
 }
 
-function loadTab(tabName) {
+// === РОУТЕР (Обработка URL) ===
+function handleRouting() {
+    const hash = window.location.hash.substring(1); // Убираем символ #
+
+    // Если хэша нет, открываем "О проекте"
+    if (!hash || hash === 'about') {
+        loadTab('about', false); // false = не менять URL
+    }
+    // Если вкладка Изменения
+    else if (hash === 'changelog') {
+        loadTab('changelog', false);
+    }
+    // Если документация (может быть просто #docs или #docs/group/page)
+    else if (hash.startsWith('docs')) {
+        const parts = hash.split('/');
+        if (parts.length === 3) {
+            // Формат: docs/group/page
+            loadTab('docs', false, parts[1], parts[2]);
+        } else {
+            // Просто #docs (откроет первую страницу)
+            loadTab('docs', false);
+        }
+    }
+    // Если что-то непонятное, кидаем на главную
+    else {
+        loadTab('about', false);
+    }
+}
+
+// === ВКЛАДКИ ===
+function loadTab(tabName, updateHash = true, targetGroup = null, targetPage = null) {
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
     const activeTab = document.getElementById(`tab-${tabName}`);
     if (activeTab) activeTab.classList.add('active');
@@ -37,11 +66,15 @@ function loadTab(tabName) {
     docsSidebar.classList.remove('visible');
     contentArea.innerHTML = '<p>Загрузка...</p>';
 
+    // Обновляем URL, если это не вызвано роутером
+    if (updateHash) {
+        window.location.hash = tabName;
+    }
+
     if (tabName === 'about') {
         fetch(`projects/${projectId}/${currentLang}/about.md`)
             .then(res => res.ok ? res.text() : Promise.reject())
             .then(md => {
-                // Пропускаем через парсер
                 const parsedMd = parseCustomMarkdown(md);
                 contentArea.innerHTML = marked.parse(parsedMd);
                 highlightCode();
@@ -49,20 +82,38 @@ function loadTab(tabName) {
             .catch(() => contentArea.innerHTML = `<p>Файл about.md не найден.</p>`);
     } else if (tabName === 'docs') {
         docsSidebar.classList.add('visible');
-        initDocumentation();
+        initDocumentation(targetGroup, targetPage);
     } else if (tabName === 'changelog') {
         contentArea.innerHTML = '<p>Раздел изменений находится в разработке.</p>';
     }
 }
 
-function initDocumentation() {
+// === ДОКУМЕНТАЦИЯ ===
+function initDocumentation(targetGroup = null, targetPage = null) {
+    // Если структура уже загружена (например, мы просто кликаем по ссылкам в сайдбаре),
+    // не делаем повторный fetch
+    if (isDocStructureLoaded) {
+        if (targetGroup && targetPage) {
+            loadDocPage(targetGroup, targetPage, false);
+        } else if (docsStructure.length > 0 && docsStructure[0].pages.length > 0) {
+            // Если перешли на вкладку "Документация" без указания страницы, грузим первую
+            loadDocPage(docsStructure[0].id, docsStructure[0].pages[0].id, true);
+        }
+        return;
+    }
+
     fetch(`projects/${projectId}/${currentLang}/documentation/info.json`)
         .then(res => res.ok ? res.json() : Promise.reject())
         .then(data => {
             docsStructure = data;
+            isDocStructureLoaded = true;
             renderSidebar();
-            if (docsStructure.length > 0 && docsStructure[0].pages.length > 0) {
-                loadDocPage(docsStructure[0].id, docsStructure[0].pages[0].id);
+
+            if (targetGroup && targetPage) {
+                loadDocPage(targetGroup, targetPage, false);
+            } else if (docsStructure.length > 0 && docsStructure[0].pages.length > 0) {
+                // Если в URL был просто #docs, грузим первую страницу
+                loadDocPage(docsStructure[0].id, docsStructure[0].pages[0].id, true);
             } else {
                 contentArea.innerHTML = '<p>Документация пуста.</p>';
             }
@@ -86,19 +137,26 @@ function renderSidebar() {
             link.className = 'docs-link';
             link.id = `link-${group.id}-${page.id}`;
             link.textContent = page.title;
-            link.onclick = () => loadDocPage(group.id, page.id);
+            // При клике в сайдбаре передаем updateHash = true
+            link.onclick = () => loadDocPage(group.id, page.id, true);
             docsMenu.appendChild(link);
         });
     });
 }
 
-function loadDocPage(group, page) {
+function loadDocPage(group, page, updateHash = true) {
     currentGroup = group;
     currentPage = page;
 
+    // Подсветка в меню
     document.querySelectorAll('.docs-link').forEach(l => l.classList.remove('active'));
     const activeLink = document.getElementById(`link-${group}-${page}`);
     if(activeLink) activeLink.classList.add('active');
+
+    // Обновляем URL (формат #docs/group/page)
+    if (updateHash) {
+        window.location.hash = `docs/${group}/${page}`;
+    }
 
     contentArea.innerHTML = '<p>Загрузка...</p>';
 
@@ -107,18 +165,15 @@ function loadDocPage(group, page) {
     fetch(mdPath)
         .then(res => res.ok ? res.text() : Promise.reject())
         .then(md => {
-            // 1. Сначала парсим наши кастомные блоки (:::info, :::tabs)
             const parsedMd = parseCustomMarkdown(md);
-
-            // 2. Затем конвертируем Markdown в HTML
-            let html = marked.parse(parsedMd);
-            contentArea.innerHTML = html;
+            contentArea.innerHTML = marked.parse(parsedMd);
 
             fixImages(group);
             fixInternalLinks();
             highlightCode();
             renderPageNav();
 
+            // Плавно прокручиваем наверх при смене страницы
             window.scrollTo({ top: 0, behavior: 'smooth' });
         })
         .catch(err => {
@@ -126,50 +181,38 @@ function loadDocPage(group, page) {
         });
 }
 
-// === ПАРСЕР КАСТОМНЫХ БЛОКОВ ===
+// === ПАРСЕР И ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
 function parseCustomMarkdown(md) {
     let parsed = md;
-
-    // 1. Парсим Hints (:::info ... :::)
-    // Добавлено \r? и \s* для поддержки Windows-переносов и лишних пробелов
     const hintRegex = /:::(info|success|warning|danger)\s*\r?\n([\s\S]*?)\r?\n\s*:::/g;
     parsed = parsed.replace(hintRegex, (match, type, content) => {
         let icon = 'ℹ️';
         if (type === 'success') icon = '✅';
         if (type === 'warning') icon = '⚠️';
         if (type === 'danger') icon = '🚫';
-
-        // Важно: \n\n до и после div нужны, чтобы marked.js правильно распарсил HTML
         return `\n\n<div class="hint hint-${type}"><div class="hint-icon">${icon}</div><div class="hint-content">\n\n${content.trim()}\n\n</div></div>\n\n`;
     });
 
-    // 2. Парсим Tabs (:::tabs ... :::)
     let tabGroupCounter = 0;
     const tabsRegex = /:::tabs\s*\r?\n([\s\S]*?)\r?\n\s*:::/g;
     parsed = parsed.replace(tabsRegex, (match, content) => {
         tabGroupCounter++;
         const groupId = `tabgroup-${Date.now()}-${tabGroupCounter}`;
-
-        // Разделяем контент по @tab (учитывая возможные пробелы)
         const tabBlocks = content.split(/@tab\s+/).filter(b => b.trim() !== '');
-
         let navHtml = '<div class="tabs-nav">';
         let contentHtml = '';
 
         tabBlocks.forEach((block, index) => {
-            // Очищаем от \r, чтобы не было лишних переносов
             let lines = block.replace(/\r/g, '').trim().split('\n');
             let title = lines.shift().trim();
             let tabContent = lines.join('\n').trim();
             let tabId = `${groupId}-${index}`;
             let activeClass = index === 0 ? 'active' : '';
-
             navHtml += `<button class="tab-btn ${activeClass}" onclick="switchTab(event, '${tabId}')">${title}</button>`;
             contentHtml += `<div id="${tabId}" class="tab-content ${activeClass}">\n\n${tabContent}\n\n</div>`;
         });
 
         navHtml += '</div>';
-
         return `\n\n<div class="tabs-container">${navHtml}${contentHtml}</div>\n\n`;
     });
 
@@ -191,11 +234,14 @@ function fixInternalLinks() {
     links.forEach(link => {
         const href = link.getAttribute('href');
         if (href && href.startsWith('#')) {
-            link.onclick = (e) => {
-                e.preventDefault();
-                const parts = href.substring(1).split('/');
-                if (parts.length === 2) loadDocPage(parts[0], parts[1]);
-            };
+            // Если это внутренняя ссылка вида #group/page
+            if (href.split('/').length === 2) {
+                link.onclick = (e) => {
+                    e.preventDefault();
+                    const parts = href.substring(1).split('/');
+                    loadDocPage(parts[0], parts[1], true); // true = обновить URL
+                };
+            }
         }
     });
 }
@@ -219,7 +265,6 @@ function renderPageNav() {
     });
 
     const currentIndex = flatPages.findIndex(p => p.groupId === currentGroup && p.pageId === currentPage);
-
     if (currentIndex > 0) prevPage = flatPages[currentIndex - 1];
     if (currentIndex < flatPages.length - 1) nextPage = flatPages[currentIndex + 1];
     if (!prevPage && !nextPage) return;
@@ -232,7 +277,7 @@ function renderPageNav() {
         prevLink.href = "#";
         prevLink.className = "prev";
         prevLink.innerHTML = `<span class="nav-label">← Previous</span><span class="nav-title">${prevPage.title}</span>`;
-        prevLink.onclick = (e) => { e.preventDefault(); loadDocPage(prevPage.groupId, prevPage.pageId); };
+        prevLink.onclick = (e) => { e.preventDefault(); loadDocPage(prevPage.groupId, prevPage.pageId, true); };
         navContainer.appendChild(prevLink);
     } else {
         navContainer.appendChild(document.createElement('div'));
@@ -243,7 +288,7 @@ function renderPageNav() {
         nextLink.href = "#";
         nextLink.className = "next";
         nextLink.innerHTML = `<span class="nav-label">Next →</span><span class="nav-title">${nextPage.title}</span>`;
-        nextLink.onclick = (e) => { e.preventDefault(); loadDocPage(nextPage.groupId, nextPage.pageId); };
+        nextLink.onclick = (e) => { e.preventDefault(); loadDocPage(nextPage.groupId, nextPage.pageId, true); };
         navContainer.appendChild(nextLink);
     }
 
@@ -254,9 +299,7 @@ window.switchTab = function(evt, tabId) {
     const container = evt.currentTarget.closest('.tabs-container');
     container.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     container.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-
     document.getElementById(tabId).classList.add('active');
     evt.currentTarget.classList.add('active');
-
     if(window.Prism) Prism.highlightAllUnder(document.getElementById(tabId));
 };
